@@ -1,46 +1,29 @@
 <?php
-require_once 'includes/conexion.php';
-require_once 'includes/validar.php';
-
-$pdo = conectar();
-$id  = (int) ($_GET['id'] ?? 0);
-
-// Buscar el contacto a editar
-$stmt = $pdo->prepare("SELECT * FROM contactos WHERE id = :id");
-$stmt->execute([':id' => $id]);
-$contacto = $stmt->fetch();
-
-if (!$contacto) {
-    header('Location: index.php');
-    exit;
+require_once __DIR__ . '/includes/app.php';
+$sesion = exigirLogin();
+$id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+if ($id === false || $id === null) {
+    throw new ApiException(400, 'El identificador del contacto no es válido.');
 }
-
+$contacto = api('contact', 'GET', [], ['id' => $id])['contact'];
 $errores = [];
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    [$contacto, $errores] = leerFormulario();
-
-    if (!$errores) {
-        $sql  = "UPDATE contactos
-                 SET nombre = :nombre, apellidos = :apellidos, telefono = :telefono,
-                     email = :email, direccion = :direccion
-                 WHERE id = :id";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            ':nombre'    => $contacto['nombre'],
-            ':apellidos' => $contacto['apellidos'],
-            ':telefono'  => $contacto['telefono'],
-            ':email'     => $contacto['email'] ?: null,
-            ':direccion' => $contacto['direccion'] ?: null,
-            ':id'        => $id,
-        ]);
-        header('Location: index.php?msg=editado');
-        exit;
+    foreach (['nombre', 'apellidos', 'telefono', 'email', 'direccion'] as $campo) {
+        $contacto[$campo] = trim(valorTexto($_POST, $campo));
+    }
+    try {
+        api('contact', 'PUT', $contacto + ['csrf' => valorTexto($_POST, 'csrf')], ['id' => $id]);
+        redirigir('index.php?msg=editado');
+    } catch (ApiException $error) {
+        if ($error->estado !== 422) {
+            throw $error;
+        }
+        http_response_code(422);
+        $errores = $error->errores ?: [$error->getMessage()];
     }
 }
-
-require 'includes/header.php';
+require __DIR__ . '/includes/header.php';
 ?>
 <h2>Editar contacto</h2>
-<?php require 'includes/formulario.php'; ?>
-<?php require 'includes/footer.php'; ?>
+<?php require __DIR__ . '/includes/formulario.php'; ?>
+<?php require __DIR__ . '/includes/footer.php'; ?>

@@ -1,0 +1,9 @@
+{
+  "profile": "EXAMEN",
+  "region": "us-ashburn-1",
+  "nodes": [
+    {"name": "FrontEnd", "instance_id": "REEMPLAZAR_OCID_FRONTEND"},
+    {"name": "BackEnd", "instance_id": "REEMPLAZAR_OCID_BACKEND"},
+    {"name": "BaseDatos", "instance_id": "REEMPLAZAR_OCID_BASEDATOS"}
+  ]
+}

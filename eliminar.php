@@ -1,14 +1,13 @@
 <?php
-require_once 'includes/conexion.php';
-
-// Solo se permite eliminar mediante POST (desde el botón de la lista)
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $id = (int) ($_POST['id'] ?? 0);
-
-    $pdo  = conectar();
-    $stmt = $pdo->prepare("DELETE FROM contactos WHERE id = :id");
-    $stmt->execute([':id' => $id]);
+require_once __DIR__ . '/includes/app.php';
+$sesion = exigirLogin();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Allow: POST');
+    throw new ApiException(405, 'La eliminación requiere una petición POST.');
 }
-
-header('Location: index.php?msg=eliminado');
-exit;
+$id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+if ($id === false || $id === null) {
+    throw new ApiException(400, 'El identificador del contacto no es válido.');
+}
+api('contact', 'DELETE', ['csrf' => valorTexto($_POST, 'csrf')], ['id' => $id]);
+redirigir('index.php?msg=eliminado');

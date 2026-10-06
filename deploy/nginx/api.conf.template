@@ -1,0 +1,18 @@
+server {
+    listen __PRIVATE_IP__:8081;
+    server_name _;
+    root /var/www/cloud1;
+    client_max_body_size 64k;
+
+    allow 10.0.0.10;
+    allow 10.0.0.11;
+    allow 10.0.0.12;
+    deny all;
+
+    location = /api/index.php {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/api/index.php;
+        fastcgi_pass unix:/run/cloud1/php-api.sock;
+    }
+    location / { return 404; }
+}
