@@ -1,6 +1,6 @@
 </main>
 <footer>
-    <p>Proyecto de ejemplo - PHP y MySQL</p>
+    <p>Agenda compartida · Nginx, PHP y MySQL · <?= e(nombreInstancia()) ?></p>
 </footer>
 </body>
 </html>

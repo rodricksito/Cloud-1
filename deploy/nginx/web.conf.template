@@ -1,0 +1,24 @@
+server {
+    listen __PRIVATE_IP__:8080;
+    server_name _;
+    root /var/www/cloud1;
+    index index.php;
+
+    allow 127.0.0.1;
+    allow __BALANCER_IP__;
+    deny all;
+    add_header Cache-Control "no-store" always;
+
+    location / { try_files $uri $uri/ =404; }
+    location ~ ^/(api|includes|database|scripts|deploy|tests)(/|$) { deny all; }
+    location ~ ^/(config[^/]*\.php|README\.md)$ { deny all; }
+    location ~ /\. { deny all; }
+
+    location ~ \.php$ {
+        try_files $uri =404;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param HTTP_X_FORWARDED_PROTO $http_x_forwarded_proto;
+        fastcgi_pass unix:/run/cloud1/php-fpm.sock;
+    }
+}

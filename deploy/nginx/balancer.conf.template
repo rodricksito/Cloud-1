@@ -1,0 +1,30 @@
+# Round robin: cada petición se reparte entre los tres servidores web.
+# Sesiones centralizadas: no se necesita ip_hash.
+upstream agenda_webs {
+    server 10.0.0.10:8080 max_fails=1 fail_timeout=10s;
+    server 10.0.0.11:8080 max_fails=1 fail_timeout=10s;
+    server 10.0.0.12:8080 max_fails=1 fail_timeout=10s;
+}
+
+server {
+    listen 80 default_server;
+    server_name _;
+    add_header X-Load-Balancer Nginx-FrontEnd always;
+    add_header Cache-Control "no-store" always;
+
+    # Mantiene compatible la URL original de la agenda.
+    location = /agenda { return 302 /; }
+    location /agenda/ { return 302 /; }
+    location / {
+        proxy_pass http://agenda_webs;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout 15s;
+        proxy_next_upstream error timeout http_502 http_503 http_504;
+        # No repetir POST: evita duplicar escrituras si hubo un fallo parcial.
+        proxy_next_upstream_tries 3;
+    }
+}

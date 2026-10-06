@@ -3,3 +3,12 @@
 Thumbs.db
 .vscode/
 .idea/
+
+# Credenciales y archivos de despliegue locales
+.local/
+config.local.php
+.env
+*.key
+*.pem
+*.log
+__pycache__/

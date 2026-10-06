@@ -10,6 +10,9 @@ body {
 header { background: #2c3e50; padding: 15px 20px; }
 header h1 { margin: 0; font-size: 1.5em; }
 header a { color: #fff; text-decoration: none; }
+.estado-servidor { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; color: #fff; margin-top: 12px; font-size: .9em; }
+.estado-servidor form { margin: 0; }
+.instancia { background: #1b7351; padding: 5px 9px; border-radius: 4px; font-family: monospace; }
 
 main {
     max-width: 1000px;
